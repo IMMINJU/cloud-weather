@@ -17,6 +17,7 @@ interface TimelineWithFiltersProps {
 
 export function TimelineWithFilters({ incidents, externalFilter }: TimelineWithFiltersProps) {
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showAll, setShowAll] = useState<boolean>(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const {
@@ -217,8 +218,9 @@ export function TimelineWithFilters({ incidents, externalFilter }: TimelineWithF
           No issues match the filter criteria.
         </p>
       ) : (
-        <div className="space-y-8">
-          {Array.from(groupIncidentsByDate(filteredIncidents)).map(([dateGroup, groupIncidents], groupIndex) => (
+        <>
+          <div className="space-y-8">
+            {Array.from(groupIncidentsByDate(showAll ? filteredIncidents : filteredIncidents.slice(0, 10))).map(([dateGroup, groupIncidents], groupIndex) => (
             <motion.div
               key={dateGroup}
               initial={{ opacity: 0, y: 20 }}
@@ -342,7 +344,29 @@ export function TimelineWithFilters({ incidents, externalFilter }: TimelineWithF
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+
+          {/* Show More / Show Less Button */}
+          {filteredIncidents.length > 10 && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                aria-label={showAll ? 'Show less incidents' : 'Show more incidents'}
+              >
+                {showAll ? (
+                  <>
+                    Show Less ▲
+                  </>
+                ) : (
+                  <>
+                    Show More ({filteredIncidents.length - 10} more) ▼
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   );

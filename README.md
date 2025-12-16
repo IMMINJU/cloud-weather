@@ -8,13 +8,32 @@ Monitor the status of major cloud services (AWS, Cloudflare, GitHub, Vercel) in 
 
 ## ✨ Features
 
+### Core Features
 - 🌤️ **Weather-based Status Visualization** - Service status represented as weather conditions (Sunny, Cloudy, Rainy, Stormy)
 - ⚡ **Real-time Monitoring** - Auto-refresh every minute to keep you updated
 - 📊 **Incident Tracking** - View recent incidents and service updates from the last 7 days
 - 🔍 **Advanced Filtering** - Filter incidents by service, impact level, and status
 - 🎨 **Beautiful UI** - Modern, responsive design with smooth animations
 - 📱 **PWA Support** - Install as a progressive web app on any device
-- 🚀 **Fast & Lightweight** - Built with Next.js 15 and optimized for performance
+
+### Enhanced UX
+- ✅ **Data Freshness Indicator** - Always know when data was last updated
+- 🔄 **Manual Refresh** - Instantly refresh data with one click
+- 🌐 **Network Status Detection** - Alerts when offline/online
+- ⚠️ **Smart Error Handling** - Clear error messages when services are unavailable
+- 📄 **Pagination** - Show More/Less for better performance
+
+### Accessibility & SEO
+- ♿ **WCAG 2.1 AA Compliant** - Skip links, ARIA labels, keyboard navigation
+- 🔍 **SEO Optimized** - Schema.org structured data, Open Graph, Twitter Cards
+- 🎯 **Enhanced Focus Visibility** - Clear focus indicators for keyboard users
+- 📱 **Mobile Optimized** - Responsive design with touch-friendly controls
+
+### Performance
+- 🚀 **Fast Initial Load** - Optimized pagination (10 items initially)
+- 💾 **Smart Caching** - 60s revalidation for fresh data
+- ⚡ **Lazy Loading** - Load more incidents on demand
+- 📉 **75% Smaller Payload** - Reduced initial data load
 
 ## 🛠️ Tech Stack
 

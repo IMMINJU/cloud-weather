@@ -1,9 +1,16 @@
 import Parser from 'rss-parser';
-import type { ServiceInfo } from './types';
+import type { ServiceInfoWithMeta, ApiResponseMetadata } from './types';
 
 const AWS_RSS_URL = 'https://status.aws.amazon.com/rss/all.rss';
 
-export async function getAWSStatus(): Promise<ServiceInfo> {
+export async function getAWSStatus(): Promise<ServiceInfoWithMeta> {
+  const fetchedAt = new Date();
+  let metadata: ApiResponseMetadata = {
+    fetchedAt,
+    status: 'success',
+    service: 'AWS',
+  };
+
   try {
     const parser = new Parser();
     const feed = await parser.parseURL(AWS_RSS_URL);
@@ -18,8 +25,8 @@ export async function getAWSStatus(): Promise<ServiceInfo> {
       return itemDate > oneDayAgo;
     });
 
-    let status: ServiceInfo['status'] = 'operational';
-    let weather: ServiceInfo['weather'] = 'sunny';
+    let status: ServiceInfoWithMeta['status'] = 'operational';
+    let weather: ServiceInfoWithMeta['weather'] = 'sunny';
     let description = 'All systems operational';
 
     if (recentIssues.length > 0) {
@@ -57,9 +64,14 @@ export async function getAWSStatus(): Promise<ServiceInfo> {
         ? new Date(recentIssues[0].pubDate)
         : new Date(),
       url: 'https://health.aws.amazon.com/health/status',
+      metadata,
     };
   } catch (error) {
     console.error('Failed to fetch AWS status:', error);
+
+    metadata.status = 'error';
+    metadata.errorMessage = error instanceof Error ? error.message : 'Failed to fetch AWS status';
+
     return {
       id: 'aws',
       name: 'AWS',
@@ -68,6 +80,7 @@ export async function getAWSStatus(): Promise<ServiceInfo> {
       description: 'Status unavailable',
       lastUpdated: new Date(),
       url: 'https://health.aws.amazon.com/health/status',
+      metadata,
     };
   }
 }

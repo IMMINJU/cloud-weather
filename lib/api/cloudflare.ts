@@ -1,13 +1,20 @@
-import type { ServiceInfo, StatuspageResponse } from './types';
+import type { ServiceInfoWithMeta, ApiResponseMetadata, StatuspageResponse } from './types';
 import { indicatorToStatus, statusToWeather } from '../utils';
 import { fetchWithTimeout } from './fetch-helper';
 
 const CLOUDFLARE_STATUS_URL = 'https://www.cloudflarestatus.com/api/v2/status.json';
 
-export async function getCloudflareStatus(): Promise<ServiceInfo> {
+export async function getCloudflareStatus(): Promise<ServiceInfoWithMeta> {
+  const fetchedAt = new Date();
+  let metadata: ApiResponseMetadata = {
+    fetchedAt,
+    status: 'success',
+    service: 'Cloudflare',
+  };
+
   try {
     const response = await fetchWithTimeout(CLOUDFLARE_STATUS_URL, {
-      next: { revalidate: 60 }, // 1분마다 재검증
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -28,9 +35,14 @@ export async function getCloudflareStatus(): Promise<ServiceInfo> {
       description: data.status?.description || 'All systems operational',
       lastUpdated: new Date(data.page?.updated_at || new Date()),
       url: 'https://www.cloudflarestatus.com/',
+      metadata,
     };
   } catch (error) {
     console.error('Failed to fetch Cloudflare status:', error);
+
+    metadata.status = 'error';
+    metadata.errorMessage = error instanceof Error ? error.message : 'Failed to fetch Cloudflare status';
+
     return {
       id: 'cloudflare',
       name: 'Cloudflare',
@@ -39,6 +51,7 @@ export async function getCloudflareStatus(): Promise<ServiceInfo> {
       description: 'Status unavailable',
       lastUpdated: new Date(),
       url: 'https://www.cloudflarestatus.com/',
+      metadata,
     };
   }
 }

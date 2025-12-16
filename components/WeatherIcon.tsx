@@ -23,6 +23,14 @@ export function WeatherIcon({ weather, size = 'md' }: WeatherIconProps) {
     stormy: 'animate-shake',
   };
 
+  const weatherDescriptions: Record<WeatherType, string> = {
+    sunny: 'Clear skies - All systems operational',
+    cloudy: 'Partly cloudy - Minor issues detected',
+    overcast: 'Cloudy - Service degradation',
+    rainy: 'Rainy - Partial outage',
+    stormy: 'Stormy - Major outage',
+  };
+
   return (
     <span
       className={clsx(
@@ -31,7 +39,7 @@ export function WeatherIcon({ weather, size = 'md' }: WeatherIconProps) {
         animationClasses[weather]
       )}
       role="img"
-      aria-label={weather}
+      aria-label={weatherDescriptions[weather]}
     >
       {getWeatherEmoji(weather)}
     </span>

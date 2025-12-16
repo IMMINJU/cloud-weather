@@ -4,10 +4,10 @@ import { parseISO, subDays, isAfter } from 'date-fns';
 import { fetchWithTimeout } from './fetch-helper';
 
 // Statuspage incidents 가져오기 (Cloudflare, GitHub, Vercel)
-async function getStatuspageIncidents(url: string, serviceName: string): Promise<Incident[]> {
+async function getStatuspageIncidents(url: string, serviceName: string, limit = 5): Promise<Incident[]> {
   try {
     const response = await fetchWithTimeout(url, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -17,7 +17,7 @@ async function getStatuspageIncidents(url: string, serviceName: string): Promise
     const data = await response.json();
     const incidents: StatuspageIncident[] = data.incidents || [];
 
-    return incidents.slice(0, 10).map((incident) => ({
+    return incidents.slice(0, limit).map((incident) => ({
       id: incident.id,
       name: `[${serviceName}] ${incident.name}`,
       status: incident.status as Incident['status'],
@@ -39,11 +39,11 @@ async function getStatuspageIncidents(url: string, serviceName: string): Promise
 }
 
 // AWS RSS에서 incidents 가져오기
-async function getAWSIncidents(): Promise<Incident[]> {
+async function getAWSIncidents(limit = 5): Promise<Incident[]> {
   try {
     const parser = new Parser();
     const feed = await parser.parseURL('https://status.aws.amazon.com/rss/all.rss');
-    const items = feed.items?.slice(0, 20) || [];
+    const items = feed.items?.slice(0, limit * 2) || [];
 
     // 최근 7일 이내의 아이템만
     const sevenDaysAgo = subDays(new Date(), 7);
@@ -90,26 +90,31 @@ async function getAWSIncidents(): Promise<Incident[]> {
 }
 
 // 모든 서비스의 incidents를 통합하여 가져오기
-export async function getAllIncidents(): Promise<Incident[]> {
+export async function getAllIncidents(limit = 10): Promise<Incident[]> {
+  const perServiceLimit = Math.ceil(limit / 4);
+
   const [cloudflare, github, vercel, aws] = await Promise.all([
     getStatuspageIncidents(
       'https://www.cloudflarestatus.com/api/v2/incidents.json',
-      'Cloudflare'
+      'Cloudflare',
+      perServiceLimit
     ),
     getStatuspageIncidents(
       'https://www.githubstatus.com/api/v2/incidents.json',
-      'GitHub'
+      'GitHub',
+      perServiceLimit
     ),
     getStatuspageIncidents(
       'https://www.vercel-status.com/api/v2/incidents.json',
-      'Vercel'
+      'Vercel',
+      perServiceLimit
     ),
-    getAWSIncidents(),
+    getAWSIncidents(perServiceLimit),
   ]);
 
   // 모든 incidents를 합치고 시간순으로 정렬 (최신순)
   const allIncidents = [...cloudflare, ...github, ...vercel, ...aws];
   allIncidents.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-  return allIncidents.slice(0, 20); // 최대 20개만 반환
+  return allIncidents.slice(0, limit); // 요청된 개수만 반환
 }

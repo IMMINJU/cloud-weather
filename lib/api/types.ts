@@ -89,3 +89,25 @@ export interface StatuspageResponse {
   };
   incidents?: StatuspageIncident[];
 }
+
+// API Response Metadata
+export interface ApiResponseMetadata {
+  fetchedAt: Date;
+  status: 'success' | 'error' | 'timeout' | 'offline';
+  errorMessage?: string;
+  service: string;
+}
+
+// Service Info with Metadata
+export interface ServiceInfoWithMeta extends ServiceInfo {
+  metadata: ApiResponseMetadata;
+}
+
+// Data Freshness Status
+export type FreshnessStatus = 'fresh' | 'stale' | 'error';
+
+export interface DataFreshnessInfo {
+  status: FreshnessStatus;
+  lastUpdate: Date;
+  message: string;
+}
